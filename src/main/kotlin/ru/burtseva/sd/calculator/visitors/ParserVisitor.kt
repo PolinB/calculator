@@ -1,19 +1,56 @@
 package ru.burtseva.sd.calculator.visitors
 
-import ru.burtseva.sd.calculator.tokinazer.Bracket
-import ru.burtseva.sd.calculator.tokinazer.NumberToken
-import ru.burtseva.sd.calculator.tokinazer.Operation
+import ru.burtseva.sd.calculator.tokinazer.*
+import java.lang.IllegalArgumentException
 
 class ParserVisitor: TokenVisitor {
+    private val parserTokens = mutableListOf<Token>()
+    private val stack = mutableListOf<Token>()
+
     override fun visit(token: NumberToken) {
-        TODO("Not yet implemented")
+        parserTokens.add(token)
     }
 
     override fun visit(token: Bracket) {
-        TODO("Not yet implemented")
+        when(token) {
+            is LeftBracket -> stack.add(token)
+            is RightBracket -> {
+                while (stack.isNotEmpty() && stack.last() !is LeftBracket) {
+                    parserTokens.add(stack.removeLast())
+                }
+                if (stack.isEmpty()) {
+                    throw IllegalArgumentException("Incorrect expression. Not found left bracket.")
+                } else {
+                    stack.removeLast()
+                }
+            }
+        }
     }
 
     override fun visit(token: Operation) {
-        TODO("Not yet implemented")
+        when(token) {
+            is Plus, is Minus -> {
+                if (stack.isNotEmpty() && stack.last() !is LeftBracket) {
+                    parserTokens.add(stack.removeLast())
+                }
+                stack.add(token)
+            }
+            is Mul, is Div -> {
+                if (stack.isNotEmpty() && (stack.last() is Mul || stack.last() is Div)) {
+                    parserTokens.add(stack.removeLast())
+                }
+                stack.add(token)
+            }
+        }
+    }
+
+    fun visit(tokens: List<Token>): List<Token> {
+        tokens.forEach{ token ->
+            token.accept(this)
+        }
+        while (stack.isNotEmpty()) {
+            parserTokens.add(stack.removeLast())
+        }
+        return parserTokens
     }
 }
