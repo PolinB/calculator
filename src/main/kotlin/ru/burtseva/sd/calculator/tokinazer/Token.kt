@@ -43,7 +43,7 @@ object Minus: Operation() {
 }
 
 object Mul: Operation() {
-    override fun toString() = "MINUS"
+    override fun toString() = "MUL"
 }
 
 object Div: Operation() {
